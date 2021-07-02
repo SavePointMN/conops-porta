@@ -21,7 +21,6 @@ router.post('/order-created', async (req, res) => {
     const registerProductId = 32675;// the WP Post ID of the registration product
 
     const newRows = line_items?.filter(i => i.product_id === registerProductId).map( registration => {
-        const initialValue = { id, phone, email };
         return registration?.meta_data?.reduce((acc, current) => {
             const {key, value} = current;
             switch (key.toLowerCase()){
@@ -39,7 +38,8 @@ router.post('/order-created', async (req, res) => {
                     break;
                 default: break;
             }
-        }, initialValue);
+            return acc;
+        }, { id, phone, email });
 
     });
 
