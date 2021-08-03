@@ -15,6 +15,7 @@ router.get('/order-created', (req, res) => {
  */
 router.post('/order-created', async (req, res) => {
     //pull data from the request body and send it over to the database pool
+    console.log("hello world");
     const { line_items, id, billing } = req.body;
     const phone = billing?.phone;
     const email = billing?.email;
