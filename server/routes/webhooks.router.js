@@ -27,16 +27,16 @@ router.post('/order-created', async (req, res) => {
             const {key, value} = current;
             switch (key.toLowerCase()){
                 case 'first name':
-                    acc['fisrtName'] = value;
+                    acc['fisrtName'] = value.trim();
                     break;
                 case 'last name':
-                    acc['lastName'] = value;
+                    acc['lastName'] = value.trim();
                     break;
                 case 'date of birth':
-                    acc['dateOfBirth'] = value;
+                    acc['dateOfBirth'] = value.trim();
                     break;
                 case 'badge name':
-                    acc['badgeName'] = value;
+                    acc['badgeName'] = value.trim();
                     break;
                 default: break;
             }
@@ -70,12 +70,10 @@ router.post('/order-created', async (req, res) => {
     //if there are any actual registration orders in this order created webhook...
     if( newRows && newRows.length > 0 ){
         console.log('has rows', newRows.length);
+        console.log( pool );
         const connection = await pool.connect();
-        console.log('pool connection');
 
-        if(!connection){
-            respond(500, {message: "cannot connect to pool"});
-        }
+        console.log('pool connection');
 
         const addRow = async row => {
             const queryText = `INSERT INTO "Attendee" ("LastName", "FirstName", "DateOfBirth", "BadgeName", "EmailAddress", "PhoneNumber", "orderID") VALUES ($1, $2, $3, $4, $5, $6, $7);`;
