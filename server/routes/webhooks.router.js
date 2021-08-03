@@ -71,31 +71,34 @@ router.post('/order-created', async (req, res) => {
     if( newRows && newRows.length > 0 ){
         console.log('has rows', newRows.length);
         console.log( pool );
-        const connection = await pool.connect();
+        try{
+            const connection = await pool.connect();
 
-        console.log('pool connection');
+            const addRow = async row => {
+                const queryText = `INSERT INTO "Attendee" ("LastName", "FirstName", "DateOfBirth", "BadgeName", "EmailAddress", "PhoneNumber", "orderID") VALUES ($1, $2, $3, $4, $5, $6, $7);`;
+                await connection.query(queryText, [row.lastName, row.firstName, row.dateOfBirth, row.badgeName, row.email, row.phone, row.id]);
+            }
 
-        const addRow = async row => {
-            const queryText = `INSERT INTO "Attendee" ("LastName", "FirstName", "DateOfBirth", "BadgeName", "EmailAddress", "PhoneNumber", "orderID") VALUES ($1, $2, $3, $4, $5, $6, $7);`;
-            await connection.query(queryText, [row.lastName, row.firstName, row.dateOfBirth, row.badgeName, row.email, row.phone, row.id]);
+            try {
+                console.log("starting database query")
+                await connection.query('BEGIN');
+                newRows.forEach(addRow);
+                await connection.query('COMMIT');
+                const successMsg = {message: "Attendee added", details: req.body};
+                console.log('pre success message');
+                respond(200, successMsg);
+            } catch (error){
+                console.log("query error:", error);
+                await connection.query('ROLLBACK');
+                const errorMsg = {error};
+                respond(500, errorMsg);
+            } finally {
+                connection.release();
+            }
+        } catch ( error ){
+            console.log('cannot connect to pool', error);
         }
 
-        try {
-            console.log("starting database query")
-            await connection.query('BEGIN');
-            newRows.forEach(addRow);
-            await connection.query('COMMIT');
-            const successMsg = {message: "Attendee added", details: req.body};
-            console.log('pre success message');
-            respond(200, successMsg);
-        } catch (error){
-            console.log("query error:", error);
-            await connection.query('ROLLBACK');
-            const errorMsg = {error};
-            respond(500, errorMsg);
-        } finally {
-            connection.release();
-        }
     } else {
         console.log('has no rows');
         const noneFoundMsg = {payload: req.body, message: "No Registration products found"};
