@@ -15,11 +15,12 @@ router.get('/order-created', (req, res) => {
  */
 router.post('/order-created', async (req, res) => {
     //pull data from the request body and send it over to the database pool
-    console.log("hello world");
+    console.log("start");
     const { line_items, id, billing } = req.body;
     const phone = billing?.phone;
     const email = billing?.email;
     const registerProductId = 32675;// the WP Post ID of the registration product
+    console.log('variables');
 
     const newRows = line_items?.filter(i => i.product_id === registerProductId).map( registration => {
         return registration?.meta_data?.reduce((acc, current) => {
@@ -44,6 +45,8 @@ router.post('/order-created', async (req, res) => {
 
     });
 
+    console.log('newRows  ');
+
     const logExternal = (status, message) => {
         const axios = require('axios');
         const url = "https://webhook.site/688b8302-ff63-4f25-878f-cd9fded384bc";
@@ -56,8 +59,16 @@ router.post('/order-created', async (req, res) => {
             })
     }
 
+    const respond = (status, message) => {
+        res.status(status);
+        res.send(JSON.stringify(message));
+        res.end();
+        logExternal(status, message);
+    }
+
     //if there are any actual registration orders in this order created webhook...
     if( newRows && newRows.length ){
+        console.log('has rows');
         const connection = await pool.connect();
 
         const addRow = async row => {
@@ -76,17 +87,14 @@ router.post('/order-created', async (req, res) => {
         } catch (error){
             await connection.query('ROLLBACK');
             const errorMsg = {error};
-            res.sendStatus(500);
-            res.send(JSON.stringify(errorMsg));
-            logExternal(500, errorMsg);
+            respond(500, errorMsg);
         } finally {
             connection.release();
         }
     } else {
+        console.log('has no roles');
         const noneFoundMsg = {payload: req.body, message: "No Registration products found"};
-        res.status(200);
-        res.send(JSON.stringify(noneFoundMsg));
-        logExternal(200, noneFoundMsg);
+        respond(200, noneFoundMsg);
     }
 });
 
