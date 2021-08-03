@@ -71,6 +71,11 @@ router.post('/order-created', async (req, res) => {
     if( newRows && newRows.length > 0 ){
         console.log('has rows', newRows.length);
         const connection = await pool.connect();
+        console.log('pool connection');
+
+        if(!connection){
+            respond(500, {message: "cannot connect to pool"});
+        }
 
         const addRow = async row => {
             const queryText = `INSERT INTO "Attendee" ("LastName", "FirstName", "DateOfBirth", "BadgeName", "EmailAddress", "PhoneNumber", "orderID") VALUES ($1, $2, $3, $4, $5, $6, $7);`;
@@ -78,12 +83,15 @@ router.post('/order-created', async (req, res) => {
         }
 
         try {
+            console.log("starting database query")
             await connection.query('BEGIN');
             newRows.forEach(addRow);
             await connection.query('COMMIT');
             const successMsg = {message: "Attendee added", details: req.body};
+            console.log('pre success message');
             respond(200, successMsg);
         } catch (error){
+            console.log("query error:", error);
             await connection.query('ROLLBACK');
             const errorMsg = {error};
             respond(500, errorMsg);
