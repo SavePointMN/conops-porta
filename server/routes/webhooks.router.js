@@ -45,7 +45,8 @@ router.post('/order-created', async (req, res) => {
 
     });
 
-    console.log('newRows  ');
+    console.log('newRows: ');
+    console.log(newRows);
 
     const logExternal = (status, message) => {
         const axios = require('axios');
@@ -67,13 +68,13 @@ router.post('/order-created', async (req, res) => {
     }
 
     //if there are any actual registration orders in this order created webhook...
-    if( newRows && newRows.length ){
-        console.log('has rows');
+    if( newRows && newRows.length > 0 ){
+        console.log('has rows', newRows.length);
         const connection = await pool.connect();
 
         const addRow = async row => {
             const queryText = `INSERT INTO "Attendee" ("LastName", "FirstName", "DateOfBirth", "BadgeName", "EmailAddress", "PhoneNumber", "orderID") VALUES ($1, $2, $3, $4, $5, $6, $7);`;
-            await connection.query(queryText, [row.firstName, row.lastName, row.dateOfBirth, row.badgeName, row.email, row.phone, row.id]);
+            await connection.query(queryText, [row.lastName, row.firstName, row.dateOfBirth, row.badgeName, row.email, row.phone, row.id]);
         }
 
         try {
@@ -81,9 +82,7 @@ router.post('/order-created', async (req, res) => {
             newRows.forEach(addRow);
             await connection.query('COMMIT');
             const successMsg = {message: "Attendee added", details: req.body};
-            res.status(200);
-            res.send(JSON.stringify(successMsg));
-            logExternal(200, successMsg);
+            respond(200, successMsg);
         } catch (error){
             await connection.query('ROLLBACK');
             const errorMsg = {error};
@@ -92,7 +91,7 @@ router.post('/order-created', async (req, res) => {
             connection.release();
         }
     } else {
-        console.log('has no roles');
+        console.log('has no rows');
         const noneFoundMsg = {payload: req.body, message: "No Registration products found"};
         respond(200, noneFoundMsg);
     }
