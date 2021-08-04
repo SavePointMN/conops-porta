@@ -62,7 +62,7 @@ router.post('/order-created', async (req, res) => {
 
     const respond = (status, message) => {
         res.status(status);
-        res.send(JSON.stringify(message));
+        res.json(message);
         res.end();
         logExternal(status, message);
     }
@@ -85,6 +85,7 @@ router.post('/order-created', async (req, res) => {
             const successMsg = {message: "Attendee added", details: req.body};
             console.log('pre success message');
             respond(200, successMsg);
+            console.log('post success message, it worked!!!!');
         } catch (error){
             console.log("query error:", error);
             //await connection.query('ROLLBACK');
