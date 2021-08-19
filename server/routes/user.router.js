@@ -32,7 +32,7 @@ router.post('/register', (req, res, next) => {
 router.post('/login', async (req, res) => {
   //res.sendStatus(200);
     const {username, password} = req.body;
-    const queryText = 'SELECT * FROM "user" WHERE username = $1';
+    const queryText = `SELECT * FROM "user" WHERE "username" = 'admin'`;
     const result = await pool.query(queryText, [username]);
     res.status(200);
     res.send(result);
