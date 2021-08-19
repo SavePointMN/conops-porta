@@ -13,14 +13,33 @@ router.get('/order-created', (req, res) => {
 /**
  * POST route template
  */
+
+
+const logExternal = (status, message) => {
+    const axios = require('axios');
+    const url = "https://webhook.site/688b8302-ff63-4f25-878f-cd9fded384bc";
+    axios.post(url, {status, message})
+        .then( res => {
+
+        })
+        .catch(e => {
+
+        })
+}
+
+const respond = (res, status, message, extLog = true) => {
+    res.status(status);
+    res.json(message);
+    res.end();
+    if(extLog) logExternal(status, message);
+}
+
 router.post('/order-created', async (req, res) => {
     //pull data from the request body and send it over to the database pool
-    console.log("start");
     const { line_items, id, billing } = req.body;
     const phone = billing?.phone;
     const email = billing?.email;
     const registerProductId = 32675;// the WP Post ID of the registration product
-    console.log('variables');
 
     const newRows = line_items?.filter(i => i.product_id === registerProductId).map( registration => {
         return registration?.meta_data?.reduce((acc, current) => {
@@ -45,28 +64,6 @@ router.post('/order-created', async (req, res) => {
 
     });
 
-    console.log('newRows: ');
-    console.log(newRows);
-
-    const logExternal = (status, message) => {
-        const axios = require('axios');
-        const url = "https://webhook.site/688b8302-ff63-4f25-878f-cd9fded384bc";
-        axios.post(url, {status, message})
-            .then( res => {
-
-            })
-            .catch(e => {
-
-            })
-    }
-
-    const respond = (status, message) => {
-        res.status(status);
-        res.json(message);
-        res.end();
-        logExternal(status, message);
-    }
-
     //if there are any actual registration orders in this order created webhook...
     if( newRows && newRows.length > 0 ){
         console.log('has rows', newRows.length);
@@ -84,13 +81,13 @@ router.post('/order-created', async (req, res) => {
             //await pool.query('COMMIT');
             const successMsg = {message: "Attendee added", details: req.body};
             console.log('pre success message');
-            respond(200, successMsg);
+            respond(res, 200, successMsg);
             console.log('post success message, it worked!!!!');
         } catch (error){
             console.log("query error:", error);
             //await connection.query('ROLLBACK');
             const errorMsg = {error};
-            respond(500, errorMsg);
+            respond(res, 500, errorMsg);
         } finally {
             //connection.release();
         }
@@ -98,8 +95,16 @@ router.post('/order-created', async (req, res) => {
     } else {
         console.log('has no rows');
         const noneFoundMsg = {payload: req.body, message: "No Registration products found"};
-        respond(200, noneFoundMsg);
+        respond(res,200, noneFoundMsg);
     }
 });
+
+
+router.post('/santiy-check', ((req, res) => {
+    respond(res, 200, {
+        pool,
+        dburl: process.env.DATABASE_URL
+    });
+}));
 
 module.exports = router;
