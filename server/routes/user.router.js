@@ -29,11 +29,14 @@ router.post('/register', (req, res, next) => {
 // userStrategy.authenticate('local') is middleware that we run on this route
 // this middleware will run our POST if successful
 // this middleware will send a 404 if not successful
-router.post('/login', (req, res) => {
+router.post('/login', async (req, res) => {
   //res.sendStatus(200);
     const {username, password} = req.body;
+    const queryText = 'SELECT * FROM "user" WHERE username = $1';
+    const result = await pool.query(queryText, [username]);
     res.status(200);
-    res.send(req.body);
+    res.send(result);
+
     // pool.query('SELECT * FROM "user" WHERE username = $1', [username])
     //     .then((result) => {
     //         const user = result && result.rows && result.rows[0];
