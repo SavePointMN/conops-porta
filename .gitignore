@@ -3,7 +3,7 @@
 .DS_STORE/
 
 #JetBrains
-.idea/
+.idea/*
 
 # Logs
 logs

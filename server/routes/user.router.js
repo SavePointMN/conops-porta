@@ -29,8 +29,22 @@ router.post('/register', (req, res, next) => {
 // userStrategy.authenticate('local') is middleware that we run on this route
 // this middleware will run our POST if successful
 // this middleware will send a 404 if not successful
-router.post('/login', userStrategy.authenticate('local'), (req, res) => {
-  res.sendStatus(200);
+router.post('/login', (req, res) => {
+  //res.sendStatus(200);
+    const {username, password} = req.body;
+    pool.query('SELECT * FROM "user" WHERE username = $1', [username])
+        .then((result) => {
+            const user = result && result.rows && result.rows[0];
+            if (user && encryptLib.comparePassword(password, user.password)) {
+                res.status(200);
+                res.send(user);
+            } else {
+                res.status(401);
+            }
+        }).catch((error) => {
+        console.log('Error with query for user ', error);
+        res.status(500);
+    });
 });
 
 // clear all server session information about this user
