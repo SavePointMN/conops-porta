@@ -32,19 +32,21 @@ router.post('/register', (req, res, next) => {
 router.post('/login', (req, res) => {
   //res.sendStatus(200);
     const {username, password} = req.body;
-    pool.query('SELECT * FROM "user" WHERE username = $1', [username])
-        .then((result) => {
-            const user = result && result.rows && result.rows[0];
-            if (user && encryptLib.comparePassword(password, user.password)) {
-                res.status(200);
-                res.send(user);
-            } else {
-                res.status(401);
-            }
-        }).catch((error) => {
-        console.log('Error with query for user ', error);
-        res.status(500);
-    });
+    res.status(200);
+    res.send(req.body);
+    // pool.query('SELECT * FROM "user" WHERE username = $1', [username])
+    //     .then((result) => {
+    //         const user = result && result.rows && result.rows[0];
+    //         if (user && encryptLib.comparePassword(password, user.password)) {
+    //             res.status(200);
+    //             res.send(user);
+    //         } else {
+    //             res.status(401);
+    //         }
+    //     }).catch((error) => {
+    //     console.log('Error with query for user ', error);
+    //     res.status(500);
+    // });
 });
 
 // clear all server session information about this user
