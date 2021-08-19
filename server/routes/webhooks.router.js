@@ -79,7 +79,7 @@ router.post('/order-created', async (req, res) => {
            // await pool.query('BEGIN');
             newRows.forEach(addRow);
             //await pool.query('COMMIT');
-            const successMsg = {message: "Attendee added", details: req.body};
+            const successMsg = {message: "Attendee added", details: newRows};
             console.log('pre success message');
             respond(res, 200, successMsg);
             console.log('post success message, it worked!!!!');
